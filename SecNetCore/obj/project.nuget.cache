@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "dgSpecHash": "Ee9hjLlltVY=",
+  "success": true,
+  "projectFilePath": "/home/runner/work/SecNet/SecNet/SecNetCore/SecNetCore.csproj",
+  "expectedPackageFiles": [
+    "/tmp/codeql-scratch-b90f4d8ebd1536ce/dbs/csharp/working/packages/microsoft.netcore.app.ref/10.0.10/microsoft.netcore.app.ref.10.0.10.nupkg.sha512",
+    "/tmp/codeql-scratch-b90f4d8ebd1536ce/dbs/csharp/working/packages/microsoft.aspnetcore.app.ref/10.0.10/microsoft.aspnetcore.app.ref.10.0.10.nupkg.sha512"
+  ],
+  "logs": []
+}
