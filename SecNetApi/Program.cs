@@ -1,23 +1,41 @@
+using SecNetApi.Extensions;
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+// Register SecNet API services (result mapper, options).
+// SecNetData services (database, CRUD, entity registry) are registered via AddSecData when
+// a concrete data-backed host configures them. In this minimal bootstrap we register the
+// API-layer services that do not require a database so the app starts cleanly.
+builder.Services.AddSecApi(options =>
+{
+    options.EnableDevelopmentErrors = builder.Environment.IsDevelopment();
+});
 
-builder.Services.AddControllers();
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
+// Register authorization services so UseAuthorization middleware can be wired in.
+// Actual authorization policies are added by the hosting application.
+builder.Services.AddAuthorization();
+
 builder.Services.AddOpenApi();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+// Global exception handler — must be first in the pipeline.
+app.UseSecExceptionHandler();
+
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
 }
 
 app.UseHttpsRedirection();
-
 app.UseAuthorization();
 
-app.MapControllers();
+// Map generic SecNet entity endpoints ( /api/sec/{entity} ).
+// Full functionality requires ISecEntityRegistry and ISecCrudService registered via AddSecData.
+app.MapSecEndpoints();
 
 app.Run();
+
+// Expose Program for WebApplicationFactory in tests.
+public partial class Program { }
+
