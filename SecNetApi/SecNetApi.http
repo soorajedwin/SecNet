@@ -1,0 +1,6 @@
+@SecNetApi_HostAddress = http://localhost:5142
+
+GET {{SecNetApi_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
