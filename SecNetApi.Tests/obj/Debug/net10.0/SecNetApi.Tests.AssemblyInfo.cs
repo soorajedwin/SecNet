@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("SecNetApi.Tests")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+f7c85fc527f7aa47268ba8ce880610d4ded910db")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+15d47494a4769f00839d89bc993c7e38a705c12c")]
 [assembly: System.Reflection.AssemblyProductAttribute("SecNetApi.Tests")]
 [assembly: System.Reflection.AssemblyTitleAttribute("SecNetApi.Tests")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

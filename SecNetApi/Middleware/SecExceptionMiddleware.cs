@@ -12,6 +12,11 @@ namespace SecNetApi.Middleware;
 /// </summary>
 public sealed class SecExceptionMiddleware
 {
+    private static readonly JsonSerializerOptions _jsonOptions = new()
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+    };
+
     private readonly RequestDelegate _next;
     private readonly ILogger<SecExceptionMiddleware> _logger;
     private readonly SecApiOptions _options;
@@ -70,10 +75,7 @@ public sealed class SecExceptionMiddleware
             Errors = new List<string> { message }
         };
 
-        var json = JsonSerializer.Serialize(result, new JsonSerializerOptions
-        {
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-        });
+        var json = JsonSerializer.Serialize(result, _jsonOptions);
 
         await context.Response.WriteAsync(json, context.RequestAborted);
     }
