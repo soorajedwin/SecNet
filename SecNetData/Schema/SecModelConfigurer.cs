@@ -1,6 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using SecNetCore.Attributes;
 using SecNetData.Services;
+using System.Reflection;
 
 namespace SecNetData.Schema;
 
@@ -14,7 +16,7 @@ public sealed class SecModelConfigurer
 
     public SecModelConfigurer(SecEntityDiscovery entityDiscovery)
     {
-        _entityDiscovery = entityDiscovery 
+        _entityDiscovery = entityDiscovery
             ?? throw new ArgumentNullException(nameof(entityDiscovery));
     }
 
@@ -96,6 +98,28 @@ public sealed class SecModelConfigurer
             null);
 
         toTableMethod?.Invoke(entityBuilder, new object[] { metadata.TableName });
+
+        var ignoredProperties = entityType
+            .GetProperties(
+                System.Reflection.BindingFlags.Public |
+                System.Reflection.BindingFlags.Instance)
+            .Where(p =>
+                p.GetCustomAttribute<SecIgnoreAttribute>() != null);
+
+        foreach (var ignoredProperty in ignoredProperties)
+        {
+            var ignoreMethod = entityBuilderType.GetMethod(
+                "Ignore",
+                System.Reflection.BindingFlags.Public |
+                System.Reflection.BindingFlags.Instance,
+                null,
+                new[] { typeof(string) },
+                null);
+
+            ignoreMethod?.Invoke(
+                entityBuilder,
+                new object[] { ignoredProperty.Name });
+        }
 
         // Configure properties
         foreach (var propMetadata in metadata.Properties)

@@ -3,5 +3,6 @@
   <Project Path="SecNetApi/SecNetApi.csproj" />
   <Project Path="SecNetBlazor/SecNetBlazor.csproj" />
   <Project Path="SecNetCore/SecNetCore.csproj" />
+  <Project Path="SecNetData.Tests/SecNetData.Tests.csproj" />
   <Project Path="SecNetData/SecNetData.csproj" />
 </Solution>

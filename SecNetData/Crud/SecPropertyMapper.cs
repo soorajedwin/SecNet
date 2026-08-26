@@ -32,69 +32,101 @@ public sealed class SecPropertyMapper : ISecPropertyMapper
         }
 
         if (entityRegistry == null)
+        {
             throw new ArgumentNullException(nameof(entityRegistry));
+        }
 
         if (typeConverter == null)
+        {
             throw new ArgumentNullException(nameof(typeConverter));
+        }
 
+        var sourceType = source.GetType();
         var targetType = target.GetType();
-        var entityMetadata = entityRegistry.GetEntityMetadata(targetType);
-        var primaryKeyProperty = entityMetadata.KeyProperty;
 
-        // Get all properties from the source object
-        var sourceProperties = source.GetType().GetProperties(BindingFlags.Public | BindingFlags.IgnoreCase);
+        var entityMetadata =
+            entityRegistry.GetEntityMetadata(targetType);
+
+        var primaryKeyName =
+            entityMetadata.KeyProperty?.PropertyName;
+
+        var sourceProperties =
+            sourceType.GetProperties(
+                BindingFlags.Public |
+                BindingFlags.Instance);
 
         foreach (var sourceProp in sourceProperties)
         {
             if (!sourceProp.CanRead)
-                continue;
-
-            // Find matching property in entity metadata by name (case-insensitive)
-            var matchingProp = entityMetadata.Properties.FirstOrDefault(p =>
-                p.PropertyName.Equals(sourceProp.Name, StringComparison.OrdinalIgnoreCase));
-
-            if (matchingProp == null)
-            {
-                // Property not in entity metadata - skip it
-                continue;
-            }
-
-            // Skip [SecIgnore] properties
-            if (matchingProp.IsIgnored)
-                continue;
-
-            // Skip the primary key (it should not be modified)
-            if (primaryKeyProperty != null && 
-                matchingProp.PropertyName.Equals(primaryKeyProperty.PropertyName, StringComparison.Ordinal))
             {
                 continue;
             }
 
-            // Get the target property
-            var targetProp = targetType.GetProperty(matchingProp.PropertyName, BindingFlags.Public | BindingFlags.IgnoreCase);
+            // Find target property directly by name.
+            var targetProp = targetType.GetProperty(
+                sourceProp.Name,
+                BindingFlags.Public |
+                BindingFlags.Instance |
+                BindingFlags.IgnoreCase);
+
             if (targetProp == null || !targetProp.CanWrite)
+            {
+                continue;
+            }
+
+            // Find metadata for this target property.
+            var propertyMetadata =
+                entityMetadata.Properties.FirstOrDefault(p =>
+                    p.PropertyName.Equals(
+                        targetProp.Name,
+                        StringComparison.OrdinalIgnoreCase));
+
+            // Property is not part of SecEntity metadata.
+            if (propertyMetadata == null)
+            {
+                continue;
+            }
+
+            // Respect [SecIgnore].
+            if (propertyMetadata.IsIgnored)
+            {
+                continue;
+            }
+
+            // Don't modify primary key.
+            if (!string.IsNullOrWhiteSpace(primaryKeyName) &&
+                targetProp.Name.Equals(
+                    primaryKeyName,
+                    StringComparison.OrdinalIgnoreCase))
             {
                 continue;
             }
 
             try
             {
-                // Get the source value
-                var sourceValue = sourceProp.GetValue(source);
+                var sourceValue =
+                    sourceProp.GetValue(source);
 
-                // Convert the value to the target property type
-                if (!typeConverter.TryConvert(sourceValue, targetProp.PropertyType, out var convertedValue, out var conversionError))
+                if (!typeConverter.TryConvert(
+                        sourceValue,
+                        targetProp.PropertyType,
+                        out var convertedValue,
+                        out var conversionError))
                 {
-                    errors.Add($"Property '{sourceProp.Name}': {conversionError}");
+                    errors.Add(
+                        $"Property '{sourceProp.Name}': {conversionError}");
+
                     continue;
                 }
 
-                // Set the value on the target
-                targetProp.SetValue(target, convertedValue);
+                targetProp.SetValue(
+                    target,
+                    convertedValue);
             }
             catch (Exception ex)
             {
-                errors.Add($"Property '{sourceProp.Name}': {ex.Message}");
+                errors.Add(
+                    $"Property '{sourceProp.Name}': {ex.Message}");
             }
         }
 

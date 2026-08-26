@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using SecNetData.Configuration;
 using SecNetData.Context;
 using SecNetData.Crud;
@@ -120,7 +121,8 @@ public static class SecDataServiceCollectionExtensions
                 sp.GetRequiredService<ISecPropertyMapper>(),
                 sp.GetRequiredService<ISecSortingExpressionBuilder>(),
                 sp.GetRequiredService<ISecSearchExpressionBuilder>(),
-                sp.GetRequiredService<SecCrudOptions>()));
+                sp.GetRequiredService<SecCrudOptions>(),
+                sp.GetRequiredService<ILogger<SecCrudService>>()));
 
         return services;
     }

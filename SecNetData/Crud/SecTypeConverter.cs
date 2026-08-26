@@ -1,4 +1,5 @@
 using System;
+using System.Text.Json;
 
 namespace SecNetData.Crud;
 
@@ -30,6 +31,15 @@ public sealed class SecTypeConverter : ISecTypeConverter
             }
             result = null;
             return true;
+        }
+
+        if (value is JsonElement jsonElement)
+        {
+            return TryConvertJsonElement(
+                jsonElement,
+                targetType,
+                out result,
+                out error);
         }
 
         // If value is already the target type, return it
@@ -222,6 +232,221 @@ public sealed class SecTypeConverter : ISecTypeConverter
         catch (Exception ex)
         {
             error = $"Conversion error: {ex.Message}";
+            return false;
+        }
+    }
+
+    private bool TryConvertJsonElement(
+    JsonElement element,
+    Type targetType,
+    out object? result,
+    out string? error)
+    {
+        result = null;
+        error = null;
+
+        if (element.ValueKind == JsonValueKind.Null)
+        {
+            return TryConvert(
+                null,
+                targetType,
+                out result,
+                out error);
+        }
+
+        var actualTargetType =
+            Nullable.GetUnderlyingType(targetType) ?? targetType;
+
+        try
+        {
+            if (actualTargetType == typeof(string))
+            {
+                if (element.ValueKind == JsonValueKind.String)
+                {
+                    result = element.GetString();
+                    return true;
+                }
+
+                result = element.ToString();
+                return true;
+            }
+
+            if (actualTargetType == typeof(bool))
+            {
+                if (element.ValueKind == JsonValueKind.True ||
+                    element.ValueKind == JsonValueKind.False)
+                {
+                    result = element.GetBoolean();
+                    return true;
+                }
+
+                return TryConvert(
+                    element.ToString(),
+                    targetType,
+                    out result,
+                    out error);
+            }
+
+            if (actualTargetType == typeof(byte))
+            {
+                if (element.TryGetByte(out var value))
+                {
+                    result = value;
+                    return true;
+                }
+            }
+
+            if (actualTargetType == typeof(short))
+            {
+                if (element.TryGetInt16(out var value))
+                {
+                    result = value;
+                    return true;
+                }
+            }
+
+            if (actualTargetType == typeof(int))
+            {
+                if (element.TryGetInt32(out var value))
+                {
+                    result = value;
+                    return true;
+                }
+            }
+
+            if (actualTargetType == typeof(long))
+            {
+                if (element.TryGetInt64(out var value))
+                {
+                    result = value;
+                    return true;
+                }
+            }
+
+            if (actualTargetType == typeof(float))
+            {
+                if (element.TryGetSingle(out var value))
+                {
+                    result = value;
+                    return true;
+                }
+            }
+
+            if (actualTargetType == typeof(double))
+            {
+                if (element.TryGetDouble(out var value))
+                {
+                    result = value;
+                    return true;
+                }
+            }
+
+            if (actualTargetType == typeof(decimal))
+            {
+                if (element.TryGetDecimal(out var value))
+                {
+                    result = value;
+                    return true;
+                }
+            }
+
+            if (actualTargetType == typeof(Guid))
+            {
+                if (element.ValueKind == JsonValueKind.String &&
+                    element.TryGetGuid(out var value))
+                {
+                    result = value;
+                    return true;
+                }
+            }
+
+            if (actualTargetType == typeof(DateTime))
+            {
+                if (element.ValueKind == JsonValueKind.String &&
+                    element.TryGetDateTime(out var value))
+                {
+                    result = value;
+                    return true;
+                }
+            }
+
+            if (actualTargetType == typeof(DateTimeOffset))
+            {
+                if (element.ValueKind == JsonValueKind.String &&
+                    element.TryGetDateTimeOffset(out var value))
+                {
+                    result = value;
+                    return true;
+                }
+            }
+
+            if (actualTargetType == typeof(DateOnly))
+            {
+                if (element.ValueKind == JsonValueKind.String &&
+                    DateOnly.TryParse(
+                        element.GetString(),
+                        out var value))
+                {
+                    result = value;
+                    return true;
+                }
+            }
+
+            if (actualTargetType == typeof(TimeOnly))
+            {
+                if (element.ValueKind == JsonValueKind.String &&
+                    TimeOnly.TryParse(
+                        element.GetString(),
+                        out var value))
+                {
+                    result = value;
+                    return true;
+                }
+            }
+
+            if (actualTargetType.IsEnum)
+            {
+                if (element.ValueKind == JsonValueKind.String)
+                {
+                    result = Enum.Parse(
+                        actualTargetType,
+                        element.GetString()!,
+                        ignoreCase: true);
+
+                    return true;
+                }
+
+                if (element.ValueKind == JsonValueKind.Number &&
+                    element.TryGetInt32(out var enumValue))
+                {
+                    result = Enum.ToObject(
+                        actualTargetType,
+                        enumValue);
+
+                    return true;
+                }
+            }
+
+            // Complex types / collections / objects.
+            result = JsonSerializer.Deserialize(
+                element.GetRawText(),
+                targetType);
+
+            if (result != null)
+            {
+                return true;
+            }
+
+            error =
+                $"Cannot convert JSON value to '{targetType.Name}'.";
+
+            return false;
+        }
+        catch (Exception ex)
+        {
+            error =
+                $"Cannot convert JSON value to '{targetType.Name}': {ex.Message}";
+
             return false;
         }
     }

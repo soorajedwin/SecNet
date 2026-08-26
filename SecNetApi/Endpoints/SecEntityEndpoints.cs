@@ -28,41 +28,107 @@ public static class SecEntityEndpoints
         var prefix = options.RoutePrefix.Trim('/');
 
         // GET /api/sec/{entity} — list with optional paging, sorting, search
-        app.MapGet($"/{prefix}/{{entity}}", HandleGetList)
+        app.MapGet($"/{prefix}/{{entity}}", GetListHandler(options))
             .WithName("SecGetList")
             .WithTags("SecNet")
             .WithSummary("List entities")
             .WithDescription("Returns a paged list of entities. Supports ?page, ?pageSize, ?search, and ?sort query parameters.");
 
         // GET /api/sec/{entity}/{id} — get by primary key
-        app.MapGet($"/{prefix}/{{entity}}/{{id}}", HandleGetById)
+        app.MapGet($"/{prefix}/{{entity}}/{{id}}", GetByIdHandler())
             .WithName("SecGetById")
             .WithTags("SecNet")
             .WithSummary("Get entity by ID")
             .WithDescription("Returns a single entity by its primary key.");
 
         // POST /api/sec/{entity} — create
-        app.MapPost($"/{prefix}/{{entity}}", HandleCreate)
+        app.MapPost($"/{prefix}/{{entity}}", CreateHandler(options))
             .WithName("SecCreate")
             .WithTags("SecNet")
             .WithSummary("Create entity")
             .WithDescription("Creates a new entity. Returns HTTP 201 with a Location header on success.");
 
         // PUT /api/sec/{entity}/{id} — update
-        app.MapPut($"/{prefix}/{{entity}}/{{id}}", HandleUpdate)
+        app.MapPut($"/{prefix}/{{entity}}/{{id}}", UpdateHandler())
             .WithName("SecUpdate")
             .WithTags("SecNet")
             .WithSummary("Update entity")
             .WithDescription("Updates an existing entity by its primary key.");
 
         // DELETE /api/sec/{entity}/{id} — delete
-        app.MapDelete($"/{prefix}/{{entity}}/{{id}}", HandleDelete)
+        app.MapDelete($"/{prefix}/{{entity}}/{{id}}", DeleteHandler())
             .WithName("SecDelete")
             .WithTags("SecNet")
             .WithSummary("Delete entity")
             .WithDescription("Deletes an entity by its primary key.");
 
         return app;
+    }
+
+    // -----------------------------------------------------------------------
+    // HANDLER FACTORIES
+    // These create the actual endpoint handlers, wrapping dependencies to avoid
+    // ASP.NET Core incorrectly inferring complex types as request body parameters.
+    // -----------------------------------------------------------------------
+
+    private static Delegate GetListHandler(SecApiOptions options)
+    {
+        return async (string entity, HttpContext context, CancellationToken cancellationToken) =>
+        {
+            var registry = context.RequestServices.GetRequiredService<ISecEntityRegistry>();
+            var crudService = context.RequestServices.GetRequiredService<ISecCrudService>();
+            var mapper = context.RequestServices.GetRequiredService<SecHttpResultMapper>();
+
+            return await HandleGetList(entity, context, registry, crudService, mapper, options, cancellationToken);
+        };
+    }
+
+    private static Delegate GetByIdHandler()
+    {
+        return async (string entity, string id, HttpContext context, CancellationToken cancellationToken) =>
+        {
+            var registry = context.RequestServices.GetRequiredService<ISecEntityRegistry>();
+            var crudService = context.RequestServices.GetRequiredService<ISecCrudService>();
+            var mapper = context.RequestServices.GetRequiredService<SecHttpResultMapper>();
+
+            return await HandleGetById(entity, id, registry, crudService, mapper, cancellationToken);
+        };
+    }
+
+    private static Delegate CreateHandler(SecApiOptions options)
+    {
+        return async (string entity, HttpContext context, CancellationToken cancellationToken) =>
+        {
+            var registry = context.RequestServices.GetRequiredService<ISecEntityRegistry>();
+            var crudService = context.RequestServices.GetRequiredService<ISecCrudService>();
+            var mapper = context.RequestServices.GetRequiredService<SecHttpResultMapper>();
+
+            return await HandleCreate(entity, context, registry, crudService, mapper, options, cancellationToken);
+        };
+    }
+
+    private static Delegate UpdateHandler()
+    {
+        return async (string entity, string id, HttpContext context, CancellationToken cancellationToken) =>
+        {
+            var registry = context.RequestServices.GetRequiredService<ISecEntityRegistry>();
+            var crudService = context.RequestServices.GetRequiredService<ISecCrudService>();
+            var mapper = context.RequestServices.GetRequiredService<SecHttpResultMapper>();
+
+            return await HandleUpdate(entity, id, context, registry, crudService, mapper, cancellationToken);
+        };
+    }
+
+    private static Delegate DeleteHandler()
+    {
+        return async (string entity, string id, HttpContext context, CancellationToken cancellationToken) =>
+        {
+            var registry = context.RequestServices.GetRequiredService<ISecEntityRegistry>();
+            var crudService = context.RequestServices.GetRequiredService<ISecCrudService>();
+            var mapper = context.RequestServices.GetRequiredService<SecHttpResultMapper>();
+
+            return await HandleDelete(entity, id, registry, crudService, mapper, cancellationToken);
+        };
     }
 
     // -----------------------------------------------------------------------

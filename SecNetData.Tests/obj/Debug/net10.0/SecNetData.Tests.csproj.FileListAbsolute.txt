@@ -1,5 +1,0 @@
-/home/runner/work/SecNet/SecNet/SecNetData.Tests/obj/Debug/net10.0/SecNetData.Tests.csproj.AssemblyReference.cache
-/home/runner/work/SecNet/SecNet/SecNetData.Tests/obj/Debug/net10.0/SecNetData.Tests.GeneratedMSBuildEditorConfig.editorconfig
-/home/runner/work/SecNet/SecNet/SecNetData.Tests/obj/Debug/net10.0/SecNetData.Tests.AssemblyInfoInputs.cache
-/home/runner/work/SecNet/SecNet/SecNetData.Tests/obj/Debug/net10.0/SecNetData.Tests.AssemblyInfo.cs
-/home/runner/work/SecNet/SecNet/SecNetData.Tests/obj/Debug/net10.0/SecNetData.Tests.csproj.CoreCompileInputs.cache
