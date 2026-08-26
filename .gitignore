@@ -1,0 +1,15 @@
+# Ignore build output
+**/bin/
+**/obj/
+
+# Ignore Visual Studio settings folder
+.vs/
+
+# Ignore .user files (e.g., *.csproj.user)
+**/*.user
+
+# Ignore generated C# files
+**/*.g.cs
+
+# Ignore backup files
+**/*.bak
